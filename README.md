@@ -4,8 +4,8 @@ A basic configuration of the OpenLDAP server, slapd, with support for data
 volumes.
 
 This image will initialize a basic configuration of slapd. Most common schemas
-are preloaded (all the schemas that come preloaded with the default Ubuntu
-Precise install of slapd), but the only record added to the directory will be
+are preloaded (all the schemas that come preloaded with the default Debian
+Jessie install of slapd), but the only record added to the directory will be
 the root organisational unit.
 
 You can (and should) configure the following by providing environment variables
@@ -25,7 +25,7 @@ with data stored in `/data/ldap` on the host, use the following:
                -e LDAP_DOMAIN=mycorp.com \
                -e LDAP_ORGANISATION="My Mega Corporation" \
                -e LDAP_ROOTPASS=s3cr3tpassw0rd \
-               -d nickstenning/slapd
+               -d cuckoohello/slapd
 
 You can find out which port the LDAP server is bound to on the host by running
 `docker ps` (or `docker port <container_id> 389`). You could then load an LDIF

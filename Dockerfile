@@ -1,33 +1,24 @@
-FROM phusion/baseimage:0.9.8
-MAINTAINER Nick Stenning <nick@whiteink.com>
+FROM debian:jessie
+MAINTAINER Yafeng Shan <cuckoo@kokonur.me>
 
-ENV HOME /root
+RUN apt-get update && \
+  DEBIAN_FRONTEND=noninteractive apt-get install -y ca-certificates ssl-cert slapd ldap-utils && \
+  apt-get clean
 
-# Disable SSH
-RUN rm -rf /etc/service/sshd /etc/my_init.d/00_regen_ssh_host_keys.sh
+RUN usermod -a -G ssl-cert openldap && rm -rf /var/lib/ldap/* /etc/ldap/slapd.d/*
 
-# Use baseimage-docker's init system.
-CMD ["/sbin/my_init"]
+# Add VOLUMEs to allow backup of config and databases
+# * To store the data outside the container, mount /var/lib/ldap as a data volume
+VOLUME ["/etc/ldap/slapd.d", "/var/lib/ldap"]
 
-# Configure apt
-RUN echo 'deb http://us.archive.ubuntu.com/ubuntu/ precise universe' >> /etc/apt/sources.list
-RUN apt-get -y update
+ADD slapd.sh /
 
-# Install slapd
-RUN LC_ALL=C DEBIAN_FRONTEND=noninteractive apt-get install -y slapd
-
-# Default configuration: can be overridden at the docker command line
-ENV LDAP_ROOTPASS toor
-ENV LDAP_ORGANISATION Acme Widgets Inc.
+ENV LDAP_ROOTPASS password
+ENV LDAP_ORGANISATION LDAP ORGANISATION
 ENV LDAP_DOMAIN example.com
 
-EXPOSE 389
+ENTRYPOINT ["/slapd.sh"]
 
-RUN mkdir /etc/service/slapd
-ADD slapd.sh /etc/service/slapd/run
+CMD ["-h", "ldap:/// ldaps:/// ldapi:///"]
 
-# To store the data outside the container, mount /var/lib/ldap as a data volume
-
-RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-
-# vim:ts=8:noet:
+EXPOSE 389 636
